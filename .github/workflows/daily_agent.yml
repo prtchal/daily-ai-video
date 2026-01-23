@@ -1,0 +1,40 @@
+name: Daily Video Agent
+on:
+  schedule:
+    - cron: '0 14 * * *' # Runs at 2:00 PM UTC daily
+  workflow_dispatch: # Allows manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install System Deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+          sudo sed -i 's/none/read,write/g' /etc/ImageMagick-6/policy.xml
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Libraries
+        run: pip install moviepy edge-tts
+
+      - name: Run Generator
+        run: python generator.py
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "AI Video Agent"
+          git config --global user.email "agent@bot.com"
+          git add daily_video.mp4
+          git commit -m "New Daily Video Generated"
+          git push
