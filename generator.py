@@ -1,68 +1,77 @@
-import json
-import random
+import os
 import asyncio
+import random
+import json
 import edge_tts
-from moviepy.editor import *
-from moviepy.config import change_settings
+from moviepy.editor import VideoFileClip, TextClip, CompositeVideoClip, AudioFileClip
 
-# CONFIG
+# Configuration
 BACKGROUND_VIDEO = "background.mp4"
-OUTPUT_FILE = "daily_video.mp4"
 TERMS_FILE = "terms.json"
+OUTPUT_VIDEO = "daily_video.mp4"
+FONT = 'Liberation-Sans'  # Standard on GitHub Linux runners
 
 def get_daily_term():
     with open(TERMS_FILE, 'r') as f:
-        data = json.load(f)
-    return random.choice(data)
+        terms = json.load(f)
+    return random.choice(terms)
 
-async def generate_voiceover(text, filename):
+async def generate_voiceover(text):
     communicate = edge_tts.Communicate(text, "en-US-ChristopherNeural")
-    await communicate.save(filename)
-
-def create_text_clip(text, duration, font_size=50, color='white', height=1920, width=1080):
-    # We use a standard linux font 'Liberation-Sans' to avoid errors
-    return TextClip(
-        text, 
-        fontsize=font_size, 
-        color=color, 
-        font='Liberation-Sans',
-        method='caption', 
-        size=(width * 0.8, None), 
-        align='center'
-    ).set_position('center').set_duration(duration)
+    await communicate.save("voiceover.mp3")
+    return "voiceover.mp3"
 
 async def main():
-    print("--- 🤖 Agent Starting ---")
+    print("--- 🤖 Starting Video Generation ---")
+    
+    # 1. Safety Check for Background
+    if not os.path.exists(BACKGROUND_VIDEO):
+        print(f"❌ Error: {BACKGROUND_VIDEO} not found!")
+        return
 
-    content = get_daily_term()
-    print(f"Topic: {content['term']}")
+    # 2. Get Content
+    data = get_daily_term()
+    term = data['term'].upper()
+    definition = data['definition']
+    application = data['application']
+    
+    # Create ONE combined script to avoid overlapping voices
+    full_script = f"Today's term is {term}. {definition}. Practical application: {application}."
+    print(f"🎙️ Generating voice for: {term}")
+    
+    # 3. Generate Audio
+    audio_path = await generate_voiceover(full_script)
+    audio_clip = AudioFileClip(audio_path)
+    duration = audio_clip.duration
 
-    script_1 = f"What is {content['term']}?"
-    script_2 = content['definition']
-    script_3 = f"Application: {content['application']}"
+    # 4. Process Background
+    # We mute it, resize for mobile (9:16), and loop it to match voice length
+    bg_clip = (VideoFileClip(BACKGROUND_VIDEO)
+               .without_audio()
+               .resize(height=1920)
+               .crop(x1=0, y1=0, width=1080, height=1920)
+               .set_duration(duration))
 
-    await generate_voiceover(script_1, "audio1.mp3")
-    await generate_voiceover(script_2, "audio2.mp3")
-    await generate_voiceover(script_3, "audio3.mp3")
+    # 5. Create Text Overlays
+    # Title (The Term)
+    title_clip = (TextClip(term, fontsize=120, color='yellow', font=FONT, method='caption', size=(900, None))
+                  .set_position(('center', 300))
+                  .set_duration(duration))
 
-    audio1 = AudioFileClip("audio1.mp3")
-    audio2 = AudioFileClip("audio2.mp3")
-    audio3 = AudioFileClip("audio3.mp3")
+    # Body (Definition + Application)
+    body_text = f"{definition}\n\n🚀 {application}"
+    body_clip = (TextClip(body_text, fontsize=60, color='white', font=FONT, method='caption', size=(850, None))
+                 .set_position(('center', 600))
+                 .set_duration(duration))
 
-    total_duration = audio1.duration + audio2.duration + audio3.duration + 1.5
-    background = VideoFileClip(BACKGROUND_VIDEO).resize(height=1920).crop(x1=0, y1=0, width=1080, height=1920).loop(duration=total_duration)
+    # 6. Combine Everything
+    final_video = CompositeVideoClip([bg_clip, title_clip, body_clip])
+    final_video.audio = audio_clip
 
-    clip1 = create_text_clip(content['term'].upper(), audio1.duration, font_size=80, color='yellow').set_start(0).set_audio(audio1)
-    clip2 = create_text_clip(content['definition'], audio2.duration, font_size=55).set_start(audio1.duration).set_audio(audio2)
-    clip3 = create_text_clip(script_3, audio3.duration, font_size=55, color='lightgreen').set_start(audio1.duration + audio2.duration).set_audio(audio3)
-
-    final_video = CompositeVideoClip([background, clip1, clip2, clip3])
-    final_video.write_videofile(OUTPUT_FILE, fps=24, codec='libx264', audio_codec='aac')
-    print("--- ✅ Video Generated Successfully ---")
+    # 7. Write Output
+    print("🎬 Rendering final video...")
+    final_video.write_videofile(OUTPUT_VIDEO, fps=24, codec="libx264", audio_codec="aac")
+    print(f"✅ Success! Created {OUTPUT_VIDEO}")
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop_policy().get_event_loop()
-    try:
-        loop.run_until_complete(main())
-    finally:
-        loop.close()
+    asyncio.run(main())
