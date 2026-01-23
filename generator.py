@@ -20,12 +20,12 @@ async def generate_voiceover(text, filename):
     await communicate.save(filename)
 
 def create_text_clip(text, duration, font_size=50, color='white', height=1920, width=1080):
-    # We use a standard linux font 'DejaVu-Sans-Bold' to avoid errors
+    # We use a standard linux font 'Liberation-Sans' to avoid errors
     return TextClip(
         text, 
         fontsize=font_size, 
         color=color, 
-        font='DejaVu-Sans-Bold',
+        font='Liberation-Sans',
         method='caption', 
         size=(width * 0.8, None), 
         align='center'
