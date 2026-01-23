@@ -1,0 +1,22 @@
+[
+  {
+    "term": "Quantum Superposition",
+    "definition": "A principle where a quantum system can exist in multiple states at the same time until it is measured.",
+    "application": "It allows quantum computers to process a vast number of possibilities simultaneously."
+  },
+  {
+    "term": "Generative Adversarial Networks (GANs)",
+    "definition": "A machine learning model where two neural networks contest with each other to create new data instances.",
+    "application": "Used to create realistic deep-fake videos or upscale low-resolution images to 4K."
+  },
+  {
+    "term": "Quantum Entanglement",
+    "definition": "A phenomenon where particles become interlinked, so the state of one instantly influences the other, regardless of distance.",
+    "application": "This is the foundation for unhackable quantum encryption communication channels."
+  },
+  {
+    "term": "Reinforcement Learning",
+    "definition": "A type of machine learning where an AI learns to make decisions by performing actions and receiving rewards or penalties.",
+    "application": "This is how AI learns to play complex video games or how robots learn to walk."
+  }
+]
