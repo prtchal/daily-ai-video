@@ -29,6 +29,8 @@ jobs:
         run: pip install moviepy==1.0.3 imageio==2.25.1 edge-tts Pillow==9.5.0
 
       - name: Run Generator
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }} 
         run: python generator.py
 
       - name: Commit and Push
