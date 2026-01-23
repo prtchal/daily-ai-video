@@ -26,7 +26,7 @@ jobs:
           python-version: '3.9'
 
       - name: Install Libraries
-        run: pip install moviepy==1.0.3 imageio==2.25.1 edge-tts
+        run: pip install moviepy==1.0.3 imageio==2.25.1 edge-tts Pillow==9.5.0
 
       - name: Run Generator
         run: python generator.py
