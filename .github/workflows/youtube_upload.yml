@@ -1,25 +1,34 @@
 name: Upload to YouTube
 on:
   schedule:
-    # This runs at 15:00 UTC (9:00 AM EST) every single day.
-    # Adjust the numbers to change the time (Minute Hour * * *)
+    # Runs at 20:00 UTC (3:00 PM EST) every day
     - cron: '0 20 * * *' 
-  workflow_dispatch: # Keeps the manual button just in case
+  workflow_dispatch: # Manual button
 
 jobs:
   upload:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+
       - name: Install Dependencies
-        run: pip install google-api-python-client google-auth-oauthlib
+        run: |
+          pip install google-api-python-client google-auth-oauthlib moviepy edge-tts groq
+          # Note: MoviePy might need ImageMagick depending on your setup
+      
+      - name: Generate Daily Video
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python generator.py  # This creates the MP4 first
+
       - name: Run Uploader
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-        run: python uploader.py
+        run: python uploader.py  # This uploads the MP4 second
