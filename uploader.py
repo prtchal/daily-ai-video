@@ -1,4 +1,5 @@
 import os
+import datetime
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
@@ -23,7 +24,7 @@ def upload_video(file_path, title, description):
     youtube = get_youtube_client()
     
     # This creates a title like: "Daily Video - Jan 24, 2026"
-    today = datetime.date.today().strftime("%b %d, %2026")
+    today = datetime.date.today().strftime("%b %d, %Y")
     final_title = f"{base_title} - {today}"
     
     body = {
