@@ -46,4 +46,4 @@ def upload_video(file_path, title, description):
 
 if __name__ == "__main__":
     # This assumes your video is named 'final_video.mp4' in your repo
-    upload_video("final_video.mp4", "My AI Generated Video", "Uploaded automatically via GitHub Actions!")
+    upload_video("daily_video.mp4", "My AI Generated Video", "Uploaded automatically via GitHub Actions!")
