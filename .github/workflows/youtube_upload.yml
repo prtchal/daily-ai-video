@@ -1,9 +1,8 @@
 name: Upload to YouTube
 on:
   schedule:
-    # Runs at 20:00 UTC (3:00 PM EST) every day
     - cron: '0 20 * * *' 
-  workflow_dispatch: # Manual button
+  workflow_dispatch: 
 
 jobs:
   upload:
@@ -16,19 +15,25 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
+      - name: Install System Dependencies
         run: |
-          pip install google-api-python-client google-auth-oauthlib moviepy edge-tts groq
-          # Note: MoviePy might need ImageMagick depending on your setup
-      
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+          # This line fixes a common security policy issue with ImageMagick on Linux
+          sudo sed -i 's/domain="path" rights="none" pattern="@\*"/domain="path" rights="read|write" pattern="@\*"/g' /etc/ImageMagick-6/policy.xml
+
+      - name: Install Python Dependencies
+        run: |
+          pip install google-api-python-client google-auth-oauthlib moviepy==1.0.3 edge-tts groq
+
       - name: Generate Daily Video
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: python generator.py  # This creates the MP4 first
+        run: python generator.py 
 
       - name: Run Uploader
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-        run: python uploader.py  # This uploads the MP4 second
+        run: python uploader.py
