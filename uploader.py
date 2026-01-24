@@ -1,5 +1,5 @@
 import os
-import datetime
+import datetime # Added this to fix the first error
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
@@ -20,21 +20,21 @@ def get_youtube_client():
     credentials = google.oauth2.credentials.Credentials.from_authorized_user_info(info)
     return build("youtube", "v3", credentials=credentials)
 
-def upload_video(file_path, title, description):
+def upload_video(file_path, title_text, description): # Fixed variable name here
     youtube = get_youtube_client()
     
-    # This creates a title like: "Daily Video - Jan 24, 2026"
+    # Creates a title like: "My Video - Jan 24, 2026"
     today = datetime.date.today().strftime("%b %d, %Y")
-    final_title = f"{base_title} - {today}"
+    final_title = f"{title_text} - {today}"
     
     body = {
         'snippet': {
             'title': final_title,
             'description': description,
-            'categoryId': '22' # 22 is "People & Blogs"
+            'categoryId': '22'
         },
         'status': {
-            'privacyStatus': 'public' # changed from private to public!
+            'privacyStatus': 'public' # Sets it to Public
         }
     }
     
@@ -50,5 +50,5 @@ def upload_video(file_path, title, description):
     print(f"Success! Video ID: {response['id']}")
 
 if __name__ == "__main__":
-    # This assumes your video is named 'daily_video.mp4' in your repo
+    # YOU CAN EDIT YOUR HEADING HERE:
     upload_video("daily_video.mp4", "My Futuristic Tech Terms Video", "Uploaded automatically via GitHub Actions!")
