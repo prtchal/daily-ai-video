@@ -22,14 +22,18 @@ def get_youtube_client():
 def upload_video(file_path, title, description):
     youtube = get_youtube_client()
     
+    # This creates a title like: "Daily Video - Jan 24, 2026"
+    today = datetime.date.today().strftime("%b %d, %2026")
+    final_title = f"{base_title} - {today}"
+    
     body = {
         'snippet': {
-            'title': title,
+            'title': final_title,
             'description': description,
             'categoryId': '22' # 22 is "People & Blogs"
         },
         'status': {
-            'privacyStatus': 'private' # Keeps it private until you're ready!
+            'privacyStatus': 'public' # changed from private to public!
         }
     }
     
@@ -45,5 +49,5 @@ def upload_video(file_path, title, description):
     print(f"Success! Video ID: {response['id']}")
 
 if __name__ == "__main__":
-    # This assumes your video is named 'final_video.mp4' in your repo
-    upload_video("daily_video.mp4", "My AI Generated Video", "Uploaded automatically via GitHub Actions!")
+    # This assumes your video is named 'daily_video.mp4' in your repo
+    upload_video("daily_video.mp4", "My Futuristic Tech Terms Video", "Uploaded automatically via GitHub Actions!")
