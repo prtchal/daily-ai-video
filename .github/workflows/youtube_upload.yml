@@ -1,6 +1,10 @@
 name: Upload to YouTube
 on:
-  workflow_dispatch: # This allows you to click a button to start the upload!
+  schedule:
+    # This runs at 14:00 UTC (9:00 AM EST) every single day.
+    # Adjust the numbers to change the time (Minute Hour * * *)
+    - cron: '0 14 * * *' 
+  workflow_dispatch: # Keeps the manual button just in case
 
 jobs:
   upload:
