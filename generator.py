@@ -34,9 +34,9 @@ async def generate_video():
     definition = data['definition']
     application = data['application']
    
-    print("DAILY TERM PAYLOAD:")
-    print(json.dumps(data, indent=2))
-    
+    print("DAILY TERM PAYLOAD:", flush=True)
+    print(json.dumps(data, indent=2), flush=True)
+
     full_script = f"{term}. {definition}. {application}"
     
     # Generate the audio
