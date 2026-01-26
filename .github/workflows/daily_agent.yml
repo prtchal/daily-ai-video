@@ -31,7 +31,7 @@ jobs:
       - name: Run Generator
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }} 
-        run: python generator.py
+        run: python -u generator.py
 
       - name: Commit and Push
         run: |
