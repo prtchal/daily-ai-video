@@ -37,10 +37,17 @@ async def generate_video():
     print("DAILY TERM PAYLOAD:", flush=True)
     print(json.dumps(data, indent=2), flush=True)
 
-    full_script = f"{term}. {definition}. {application}"
+    full_script = f"{term}... {definition}... {application}"
     
     # Generate the audio
-    communicate = edge_tts.Communicate(full_script, "en-US-ChristopherNeural")
+    communicate = edge_tts.Communicate(
+    text=full_script,
+    #voice="en-US-ChristopherNeural",...
+    voice="en-US-GuyNeural",
+    rate="+15%",
+    pitch="+0Hz",
+    volume="+0%"
+)
     await communicate.save("voiceover.mp3")
     audio_clip = AudioFileClip("voiceover.mp3")
     duration = audio_clip.duration
@@ -55,7 +62,7 @@ async def generate_video():
     # --- VISUAL LAYOUT (FIXED & DYNAMIC) ---
 
       # 1. TOP BANNER (Series Title)
-    banner_clip = (TextClip("Today's Futuristic Tech Term", fontsize=40, color='cyan', 
+    banner_clip = (TextClip("Future tech term of the day..", fontsize=40, color='cyan', 
                         font=FONT, method='caption', size=(900, None))
                .set_position(('center', 100))
                .set_duration(duration))
