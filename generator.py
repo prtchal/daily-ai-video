@@ -54,28 +54,29 @@ async def generate_video():
 
     # --- VISUAL LAYOUT (FIXED & DYNAMIC) ---
 
-    # 1. TOP BANNER (Series Title)
-    banner_clip = (TextClip("Today's Futuristic Tech Term", fontsize=45, color='cyan', 
-                            font=FONT, method='caption', size=(900, None))
-                   .set_position(('center', 150))
-                   .set_duration(duration))
+      # 1. TOP BANNER (Series Title)
+        banner_clip = (TextClip("Today's Futuristic Tech Term", fontsize=40, color='cyan', 
+                        font=FONT, method='caption', size=(900, None))
+               .set_position(('center', 100))
+               .set_duration(duration))
 
     # 2. MAIN TITLE (The Tech Term)
-    # Starts at 400px down the screen
-    title_clip = (TextClip(term.upper(), fontsize=80, color='yellow', 
-                           font=FONT, method='caption', size=(900, None))
-                  .set_position(('center', 400))
-                  .set_duration(duration))
+    # Reduced fontsize to 55 to prevent excessive wrapping
+    title_y = 280
+    title_clip = (TextClip(term.upper(), fontsize=55, color='yellow', 
+                       font=FONT, method='caption', size=(900, None))
+              .set_position(('center', title_y))
+              .set_duration(duration))
 
-    # 3. DYNAMIC BODY (Prevents Overlapping)
-    # This measures the height of the title and places the body 60px below it
-    body_y_position = 400 + title_clip.h + 60
-    
-    body_content = f"{definition}\n\n🚀 {application}"
-    body_clip = (TextClip(body_content, fontsize=50, color='white', 
-                          font=FONT, method='caption', size=(850, None))
-                 .set_position(('center', body_y_position))
-                 .set_duration(duration))
+    # 3. DYNAMIC BODY (The Overlap Fix)
+    # We calculate the position based on the new title height + a 120px gap
+    body_y_position = title_y + title_clip.h + 120 
+
+    body_text = f"{definition}\n\n🚀 {application}"
+    body_clip = (TextClip(body_text, fontsize=45, color='white', 
+                      font=FONT, method='caption', size=(850, None))
+             .set_position(('center', body_y_position)) 
+             .set_duration(duration))
 
     # 4. COMPILE AND EXPORT
     final_video = CompositeVideoClip([bg_clip, banner_clip, title_clip, body_clip])
