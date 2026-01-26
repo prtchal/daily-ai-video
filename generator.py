@@ -55,7 +55,7 @@ async def generate_video():
     # --- VISUAL LAYOUT (FIXED & DYNAMIC) ---
 
       # 1. TOP BANNER (Series Title)
-        banner_clip = (TextClip("Today's Futuristic Tech Term", fontsize=40, color='cyan', 
+    banner_clip = (TextClip("Today's Futuristic Tech Term", fontsize=40, color='cyan', 
                         font=FONT, method='caption', size=(900, None))
                .set_position(('center', 100))
                .set_duration(duration))
