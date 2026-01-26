@@ -4,6 +4,9 @@ import json
 from groq import Groq
 from moviepy.editor import VideoFileClip, TextClip, CompositeVideoClip, AudioFileClip
 import edge_tts
+import PIL.Image
+if not hasattr(PIL.Image, 'ANTIALIAS'):
+    PIL.Image.ANTIALIAS = PIL.Image.Resampling.LANCZOS
 
 # --- CONFIGURATION ---
 BACKGROUND_VIDEO = "background.mp4"
