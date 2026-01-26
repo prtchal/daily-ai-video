@@ -18,9 +18,6 @@ def get_daily_term():
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
     prompt = "Provide a unique futuristic tech term (AI, Quantum, or Space), its definition (1 sentence), and a practical application (1 sentence). Return ONLY as a JSON object with keys: 'term', 'definition', 'application'."
    
-    print("DAILY TERM PAYLOAD:")
-    print(json.dumps(data, indent=2))
-
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
        #--- model="llama3-8b-8192", ---
@@ -36,6 +33,9 @@ async def generate_video():
     term = data['term']
     definition = data['definition']
     application = data['application']
+   
+    print("DAILY TERM PAYLOAD:")
+    print(json.dumps(data, indent=2))
     
     full_script = f"{term}. {definition}. {application}"
     
