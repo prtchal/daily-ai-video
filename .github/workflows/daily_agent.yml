@@ -1,7 +1,7 @@
 name: Daily Video Agent
 on:
   schedule:
-    - cron: '45 15 * * *'  # Runs at 10:45 AM ET / 15:45 UTC
+    - cron: '15 16 * * *'  # Runs at 10:45 AM ET / 15:45 UTC
   workflow_dispatch: # Allows manual trigger
 
 permissions:
@@ -17,8 +17,9 @@ jobs:
       - name: Install System Deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y imagemagick
+          sudo apt-get install -y imagemagick ffmpeg
           sudo sed -i 's/none/read,write/g' /etc/ImageMagick-6/policy.xml
+
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -26,7 +27,7 @@ jobs:
           python-version: '3.9'
 
       - name: Install Libraries
-        run: pip install moviepy==1.0.3 imageio==2.25.1 edge-tts Pillow==9.5.0
+        run: pip install moviepy==1.0.3 imageio==2.25.1 edge-tts Pillow==9.5.0 groq
 
       - name: Run Generator
         env:
