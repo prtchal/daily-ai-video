@@ -42,7 +42,7 @@ async def generate_video():
     # Generate the audio
     communicate = edge_tts.Communicate(
     text=full_script,
-    voice="en-US-ChristopherNeural",...
+    voice="en-US-ChristopherNeural",
     #voice="en-US-GuyNeural",
     rate="+12%",
     pitch="+0Hz",
