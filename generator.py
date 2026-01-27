@@ -4,6 +4,7 @@ import json
 from groq import Groq
 from moviepy.editor import VideoFileClip, TextClip, CompositeVideoClip, AudioFileClip
 import edge_tts
+
 import PIL.Image
 if not hasattr(PIL.Image, 'ANTIALIAS'):
     PIL.Image.ANTIALIAS = PIL.Image.Resampling.LANCZOS
@@ -13,91 +14,114 @@ BACKGROUND_VIDEO = "background.mp4"
 OUTPUT_VIDEO = "daily_video.mp4"
 FONT = os.environ.get("MOVIEPY_FONT", "DejaVu-Sans-Bold")
 
-# Make sure this font is available on your system
-
-# --- STEP 1: DYNAMIC DATA FETCHING (YOUR ORIGINAL LOGIC) ---
 def get_daily_term():
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-    prompt = "Provide a unique futuristic tech term (AI, Quantum, or Space), its definition (1 sentence), and a practical application (1 sentence). Return ONLY as a JSON object with keys: 'term', 'definition', 'application'."
-   
+    prompt = (
+        "Provide a unique futuristic tech term (AI, Quantum, or Space), "
+        "its definition (1 sentence), and a practical application (1 sentence). "
+        "Return ONLY as a JSON object with keys: 'term', 'definition', 'application'."
+    )
+
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-       #--- model="llama3-8b-8192", ---
         model="llama-3.3-70b-versatile",
-        response_format={"type": "json_object"}
+        response_format={"type": "json_object"},
     )
     return json.loads(chat_completion.choices[0].message.content)
 
-# --- STEP 2: VIDEO GENERATION ---
 async def generate_video():
     # Fetch the dynamic data
     data = get_daily_term()
-    term = data['term']
-    definition = data['definition']
-    application = data['application']
-   
+    term = data["term"]
+    definition = data["definition"]
+    application = data["application"]
+
     print("DAILY TERM PAYLOAD:", flush=True)
     print(json.dumps(data, indent=2), flush=True)
 
+    # Combine into one voiceover script
     full_script = f"{term}... {definition}... {application}"
-    
+
     # Generate the audio
     communicate = edge_tts.Communicate(
-    text=full_script,
-    voice="en-US-ChristopherNeural",
-    #voice="en-US-GuyNeural",
-    rate="+12%",
-    pitch="+0Hz",
-    volume="+0%"
-)
+        text=full_script,
+        voice="en-US-ChristopherNeural",
+        rate="+12%",
+        pitch="+0Hz",
+        volume="+0%",
+    )
     await communicate.save("voiceover.mp3")
-        audio_clip = AudioFileClip("voiceover.mp3")
-        duration = audio_clip.duration
+
+    audio_clip = AudioFileClip("voiceover.mp3")
+    duration = audio_clip.duration
 
     if not os.path.exists(BACKGROUND_VIDEO):
+        audio_clip.close()
         raise FileNotFoundError(f"Missing {BACKGROUND_VIDEO} in repo root")
 
     # Prepare background
-    bg_clip = (VideoFileClip(BACKGROUND_VIDEO)
-               .without_audio()
-               .resize(height=1920)
-               .crop(x1=0, y1=0, width=1080, height=1920)
-               .set_duration(duration))
+    bg_clip = (
+        VideoFileClip(BACKGROUND_VIDEO)
+        .without_audio()
+        .resize(height=1920)
+        .crop(x1=0, y1=0, width=1080, height=1920)
+        .set_duration(duration)
+    )
 
-    # --- VISUAL LAYOUT (FIXED & DYNAMIC) ---
+    # 1) TOP BANNER
+    banner_clip = (
+        TextClip(
+            "Future tech term of the day..",
+            fontsize=40,
+            color="cyan",
+            font=FONT,
+            method="caption",
+            size=(900, None),
+        )
+        .set_position(("center", 100))
+        .set_duration(duration)
+    )
 
-      # 1. TOP BANNER (Series Title)
-    banner_clip = (TextClip("Future tech term of the day..", fontsize=40, color='cyan', 
-                        font=FONT, method='caption', size=(900, None))
-               .set_position(('center', 100))
-               .set_duration(duration))
-
-    # 2. MAIN TITLE (The Tech Term)
-    # Reduced fontsize to 55 to prevent excessive wrapping
+    # 2) MAIN TITLE
     title_y = 280
-    title_clip = (TextClip(term.upper(), fontsize=55, color='yellow', 
-                       font=FONT, method='caption', size=(900, None))
-              .set_position(('center', title_y))
-              .set_duration(duration))
+    title_clip = (
+        TextClip(
+            term.upper(),
+            fontsize=55,
+            color="yellow",
+            font=FONT,
+            method="caption",
+            size=(900, None),
+        )
+        .set_position(("center", title_y))
+        .set_duration(duration)
+    )
 
-    # 3. DYNAMIC BODY (The Overlap Fix)
-    # We calculate the position based on the new title height + a 120px gap
-    body_y_position = title_y + title_clip.h + 120 
-
+    # 3) BODY (positioned below title)
+    body_y_position = title_y + title_clip.h + 120
     body_text = f"{definition}\n\n🚀 {application}"
-    body_clip = (TextClip(body_text, fontsize=45, color='white', 
-                      font=FONT, method='caption', size=(850, None))
-             .set_position(('center', body_y_position)) 
-             .set_duration(duration))
+    body_clip = (
+        TextClip(
+            body_text,
+            fontsize=45,
+            color="white",
+            font=FONT,
+            method="caption",
+            size=(850, None),
+        )
+        .set_position(("center", body_y_position))
+        .set_duration(duration)
+    )
 
-    # 4. COMPILE AND EXPORT
+    # Compile and export
     final_video = CompositeVideoClip([bg_clip, banner_clip, title_clip, body_clip])
     final_video.audio = audio_clip
-
     final_video.write_videofile(OUTPUT_VIDEO, fps=24, codec="libx264", audio_codec="aac")
-    
+
     # Cleanup
     audio_clip.close()
+    bg_clip.close()
+    final_video.close()
     if os.path.exists("voiceover.mp3"):
         os.remove("voiceover.mp3")
 
