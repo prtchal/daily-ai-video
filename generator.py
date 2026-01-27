@@ -11,7 +11,9 @@ if not hasattr(PIL.Image, 'ANTIALIAS'):
 # --- CONFIGURATION ---
 BACKGROUND_VIDEO = "background.mp4"
 OUTPUT_VIDEO = "daily_video.mp4"
-FONT = "Arial-Bold" # Make sure this font is available on your system
+FONT = os.environ.get("MOVIEPY_FONT", "DejaVu-Sans-Bold")
+
+" # Make sure this font is available on your system
 
 # --- STEP 1: DYNAMIC DATA FETCHING (YOUR ORIGINAL LOGIC) ---
 def get_daily_term():
@@ -51,6 +53,9 @@ async def generate_video():
     await communicate.save("voiceover.mp3")
     audio_clip = AudioFileClip("voiceover.mp3")
     duration = audio_clip.duration
+
+    if not os.path.exists(BACKGROUND_VIDEO):
+    raise FileNotFoundError(f"Missing {BACKGROUND_VIDEO} in repo root")
 
     # Prepare background
     bg_clip = (VideoFileClip(BACKGROUND_VIDEO)
