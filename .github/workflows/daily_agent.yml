@@ -1,7 +1,7 @@
 name: Daily Video Agent
 on:
   schedule:
-    - cron: '30 17 * * *'  # Runs at 12:30 PM ET / 30:17 UTC
+    - cron: '30 17 * * *'  # Runs at 12:30 PM ET / 17:30 UTC
   workflow_dispatch: # Allows manual trigger
 
 permissions:
