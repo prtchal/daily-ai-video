@@ -13,7 +13,7 @@ BACKGROUND_VIDEO = "background.mp4"
 OUTPUT_VIDEO = "daily_video.mp4"
 FONT = os.environ.get("MOVIEPY_FONT", "DejaVu-Sans-Bold")
 
-" # Make sure this font is available on your system
+# Make sure this font is available on your system
 
 # --- STEP 1: DYNAMIC DATA FETCHING (YOUR ORIGINAL LOGIC) ---
 def get_daily_term():
