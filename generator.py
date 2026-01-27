@@ -51,11 +51,11 @@ async def generate_video():
     volume="+0%"
 )
     await communicate.save("voiceover.mp3")
-    audio_clip = AudioFileClip("voiceover.mp3")
-    duration = audio_clip.duration
+        audio_clip = AudioFileClip("voiceover.mp3")
+        duration = audio_clip.duration
 
     if not os.path.exists(BACKGROUND_VIDEO):
-    raise FileNotFoundError(f"Missing {BACKGROUND_VIDEO} in repo root")
+        raise FileNotFoundError(f"Missing {BACKGROUND_VIDEO} in repo root")
 
     # Prepare background
     bg_clip = (VideoFileClip(BACKGROUND_VIDEO)
