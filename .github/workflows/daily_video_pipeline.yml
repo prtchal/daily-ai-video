@@ -11,6 +11,7 @@ permissions:
 jobs:
   daily:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,6 +39,7 @@ jobs:
         run: |
           python -u generator.py
           ls -lh daily_video.mp4
+          ls -lh used_terms.json || echo "used_terms.json not created yet"
 
       - name: Upload to YouTube
         env:
@@ -46,10 +48,19 @@ jobs:
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
         run: python -u uploader.py
 
-      - name: Commit and Push mp4 for GitHub Pages
+      - name: Commit and Push mp4 + used_terms.json for GitHub Pages
         run: |
           git config --global user.name "AI Video Agent"
           git config --global user.email "agent@bot.com"
+
+          git pull --rebase
+
           git add daily_video.mp4
-          git commit -m "New Daily Video Generated" || echo "Nothing to commit"
+
+          if [ -f used_terms.json ]; then
+            git add used_terms.json
+          fi
+
+          git status
+          git commit -m "New Daily Video + term history update" || echo "Nothing to commit"
           git push
