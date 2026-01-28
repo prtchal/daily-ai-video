@@ -5,6 +5,10 @@ from groq import Groq
 from moviepy.editor import VideoFileClip, TextClip, CompositeVideoClip, AudioFileClip
 import edge_tts
 import PIL.Image
+import time
+import re
+
+USED_TERMS_PATH = "used_terms.json"
 
 if not hasattr(PIL.Image, 'ANTIALIAS'):
     PIL.Image.ANTIALIAS = PIL.Image.Resampling.LANCZOS
@@ -14,24 +18,78 @@ BACKGROUND_VIDEO = "background.mp4"
 OUTPUT_VIDEO = "daily_video.mp4"
 FONT = os.environ.get("MOVIEPY_FONT", "DejaVu-Sans-Bold")
 
-def get_daily_term():
+def _normalize_term(term: str) -> str:
+    return re.sub(r"\s+", " ", term.strip().lower())
+
+def _load_used_terms() -> set:
+    try:
+        with open(USED_TERMS_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            terms = data.get("terms", [])
+        elif isinstance(data, list):
+            terms = data
+        else:
+            terms = []
+        return {_normalize_term(t) for t in terms if isinstance(t, str)}
+    except FileNotFoundError:
+        return set()
+    except Exception:
+        return set()
+
+def _save_used_terms(terms_set: set, keep_last: int = 500):
+    terms_list = sorted(list(terms_set))[-keep_last:]
+    with open(USED_TERMS_PATH, "w", encoding="utf-8") as f:
+        json.dump({"terms": terms_list}, f, indent=2)
+
+def get_daily_term(max_attempts: int = 10):
     api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
         raise RuntimeError("Missing GROQ_API_KEY in environment / GitHub Secrets")
 
+    used_terms = _load_used_terms()
     client = Groq(api_key=api_key)
+
+    today_utc = time.strftime("%Y-%m-%d", time.gmtime())
+
     prompt = (
-        "Provide a unique futuristic tech term (AI, Quantum, or Space), "
-        "its definition (1 sentence), and a practical application (1 sentence). "
-        "Return ONLY as a JSON object with keys: 'term', 'definition', 'application'."
+        f"Today is {today_utc}.\n"
+        "Generate ONE brand-new futuristic tech term (AI, Quantum, or Space).\n"
+        "Return ONLY a JSON object with keys: term, definition, application.\n"
+        "Rules:\n"
+        "- term must be 2–4 words\n"
+        "- term must NOT be common\n"
+        "- term must NOT repeat any prior term in this series\n"
+        "- definition: exactly 1 sentence\n"
+        "- application: exactly 1 sentence\n"
     )
 
-    chat_completion = client.chat.completions.create(
-        messages=[{"role": "user", "content": prompt}],
-        model="llama-3.3-70b-versatile",
-        response_format={"type": "json_object"}
-    )
-    return json.loads(chat_completion.choices[0].message.content)
+    for attempt in range(1, max_attempts + 1):
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"},
+            temperature=0.9,
+            top_p=0.95,
+        )
+
+        data = json.loads(chat_completion.choices[0].message.content)
+        term = data.get("term", "").strip()
+
+        if not term:
+            continue
+
+        norm = _normalize_term(term)
+        if norm in used_terms:
+            print(f"[get_daily_term] Duplicate term, retrying: {term}", flush=True)
+            continue
+
+        used_terms.add(norm)
+        _save_used_terms(used_terms)
+        print(f"[get_daily_term] New unique term: {term}", flush=True)
+        return data
+
+    raise RuntimeError("Failed to generate a unique daily term")
 
 async def generate_video():
     # Cleanup at start (prevents overlaps on reruns)
