@@ -38,7 +38,7 @@ def _load_used_terms() -> set:
         return set()
 
 def _save_used_terms(terms_set: set, keep_last: int = 500):
-    terms_list = sorted(list(terms_set))[-keep_last:]
+    terms_list = sorted(list(terms_set))[:keep_last]  # bounded, order not important for a set
     with open(USED_TERMS_PATH, "w", encoding="utf-8") as f:
         json.dump({"terms": terms_list}, f, indent=2)
 
@@ -57,7 +57,7 @@ def get_daily_term(max_attempts: int = 10):
         "Generate ONE brand-new futuristic tech term (AI, Quantum, or Space).\n"
         "Return ONLY a JSON object with keys: term, definition, application.\n"
         "Rules:\n"
-        "- term must be 2–4 words\n"
+        "- term must be 2-4 words\n"
         "- term must NOT be common\n"
         "- term must NOT repeat any prior term in this series\n"
         "- definition: exactly 1 sentence\n"
@@ -74,9 +74,11 @@ def get_daily_term(max_attempts: int = 10):
         )
 
         data = json.loads(chat_completion.choices[0].message.content)
-        term = data.get("term", "").strip()
+        term = (data.get("term") or "").strip()
+        definition = (data.get("definition") or "").strip()
+        application = (data.get("application") or "").strip()
 
-        if not term:
+        if not term or not definition or not application:
             continue
 
         norm = _normalize_term(term)
@@ -87,7 +89,7 @@ def get_daily_term(max_attempts: int = 10):
         used_terms.add(norm)
         _save_used_terms(used_terms)
         print(f"[get_daily_term] New unique term: {term}", flush=True)
-        return data
+        return {"term": term, "definition": definition, "application": application}
 
     raise RuntimeError("Failed to generate a unique daily term")
 
