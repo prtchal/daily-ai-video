@@ -15,6 +15,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync with remote (clean working tree)
+        run: |
+          git config --global user.name "AI Video Agent"
+          git config --global user.email "agent@bot.com"
+          git pull --rebase
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -46,14 +54,13 @@ jobs:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-        run: python -u uploader.py
+        run: |
+          python -u uploader.py
 
       - name: Commit and Push mp4 + used_terms.json for GitHub Pages
         run: |
           git config --global user.name "AI Video Agent"
           git config --global user.email "agent@bot.com"
-
-          git pull --rebase
 
           git add daily_video.mp4
 
