@@ -2,7 +2,7 @@ name: Daily Video Pipeline (Generate + Upload + Pages)
 
 on:
   schedule:
-    - cron: "00 18 * * *"   # 2:00 PM ET (EST) / 18:00 UTC
+    - cron: "00 20 * * *"   # 3:00 PM ET (EST) / 20:00 UTC
   workflow_dispatch:
 
 permissions:
