@@ -22,7 +22,8 @@ jobs:
         run: |
           git config --global user.name "AI Video Agent"
           git config --global user.email "agent@bot.com"
-          git pull --rebase
+          git checkout main
+          git pull --rebase || echo "Nothing to rebase"
 
       - name: Set up Python
         uses: actions/setup-python@v4
