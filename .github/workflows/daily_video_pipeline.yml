@@ -1,4 +1,4 @@
-name: Daily Video Pipeline (Generate + Upload + Pages)
+name: Daily Video Pipeline (Generate + Upload)
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   daily:
@@ -58,17 +58,8 @@ jobs:
         run: |
           python -u uploader.py
 
-      - name: Commit and Push mp4 + used_terms.json for GitHub Pages
+      - name: Cleanup generated files
+        if: always()
         run: |
-          git config --global user.name "AI Video Agent"
-          git config --global user.email "agent@bot.com"
-
-          git add daily_video.mp4
-
-          if [ -f used_terms.json ]; then
-            git add used_terms.json
-          fi
-
-          git status
-          git commit -m "New Daily Video + term history update" || echo "Nothing to commit"
-          git push
+          rm -f daily_video.mp4 || true
+          rm -f used_terms.json || true
